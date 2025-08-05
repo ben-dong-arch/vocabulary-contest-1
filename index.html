@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语词汇竞赛系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- 文件处理库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1>🎯 英语词汇竞赛系统</h1>
+            </div>
+            <div class="nav-links">
+                <button class="nav-btn active" onclick="showSection('home')">首页</button>
+                <button class="nav-btn" onclick="showSection('contest')">开始竞赛</button>
+                <button class="nav-btn" onclick="showSection('leaderboard')">排行榜</button>
+                <button class="nav-btn admin-nav" onclick="showSection('admin')" style="display: none;">管理员</button>
+            </div>
+        </nav>
+
+        <!-- 消息容器 -->
+        <div id="message-container"></div>
+
+        <!-- 首页 -->
+        <section id="home" class="section active">
+            <div class="hero-section">
+                <h2>欢迎来到英语词汇竞赛系统</h2>
+                <p class="hero-description">
+                    提升您的英语词汇水平，参与激动人心的词汇竞赛！
+                    系统支持多种题型，包括英译中、中译英、填空题等，
+                    让您在竞赛中快速提升词汇量。
+                </p>
+            </div>
+
+            <!-- 用户认证 -->
+            <div id="auth-section" class="auth-container">
+                <div class="auth-card">
+                    <h3 id="auth-title">用户登录</h3>
+                    
+                    <!-- 认证选项卡 -->
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" onclick="switchAuthMode('login')">登录</button>
+                        <button class="auth-tab" onclick="switchAuthMode('register')">注册</button>
+                    </div>
+
+                    <!-- 登录表单 -->
+                    <div id="login-form" class="auth-form">
+                        <div class="form-group">
+                            <input type="text" id="login-username" placeholder="用户名" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="login-password" placeholder="密码" required>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
+                                <input type="checkbox" id="admin-checkbox">
+                                <span>管理员登录</span>
+                            </label>
+                        </div>
+                        <button type="button" class="primary-btn" onclick="handleAuth()">登录</button>
+                    </div>
+
+                    <!-- 注册表单 -->
+                    <div id="register-form" class="auth-form" style="display: none;">
+                        <div class="form-group">
+                            <input type="text" id="register-username" placeholder="用户名" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="register-password" placeholder="密码（至少6位）" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="confirm-password" placeholder="确认密码" required>
+                        </div>
+                        <button type="button" class="primary-btn" onclick="handleAuth()">注册</button>
+                    </div>
+
+                    <!-- 演示说明 -->
+                    <div class="demo-note" style="margin-top: 20px; padding: 15px; background: #f0f4ff; border-radius: 10px; text-align: center; font-size: 14px; color: #495057;">
+                        <strong>演示账户：</strong><br>
+                        用户名：baobaoxiong<br>
+                        密码：123456abc<br>
+                        <small>您也可以注册新账户使用系统</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户信息显示 -->
+            <div id="user-info" class="user-info" style="display: none;">
+                <div class="user-welcome">
+                    <h3>欢迎回来，<span id="current-username"></span>！<span id="admin-badge" class="admin-badge" style="display: none;">管理员</span></h3>
+                    <button class="secondary-btn" onclick="logout()">退出登录</button>
+                </div>
+            </div>
+
+            <!-- 系统特色 -->
+            <div class="features-section">
+                <h3>系统特色</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h4>丰富题型</h4>
+                        <p>支持英译中、中译英、填空题等多种题型，全面提升词汇能力</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🏆</div>
+                        <h4>竞赛排名</h4>
+                        <p>实时排行榜系统，与其他用户比拼词汇水平，激发学习动力</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h4>数据统计</h4>
+                        <p>详细的学习数据分析，帮助您了解学习进度和薄弱环节</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚙️</div>
+                        <h4>管理功能</h4>
+                        <p>管理员可以管理词汇库、用户信息，定制化学习内容</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 管理员面板 -->
+        <section id="admin" class="section">
+            <div class="admin-header">
+                <h2>管理员控制面板</h2>
+                <p class="admin-description">管理词汇库和用户信息</p>
+            </div>
+
+            <div class="admin-content">
+                <!-- 词汇管理 -->
+                <div class="admin-card">
+                    <h3>📚 词汇库管理</h3>
+                    
+                    <!-- 词汇统计 -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="total-words">0</div>
+                            <div class="stat-label">总词汇数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="level1-words">0</div>
+                            <div class="stat-label">初级词汇</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="level2-words">0</div>
+                            <div class="stat-label">中级词汇</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="level3-words">0</div>
+                            <div class="stat-label">高级词汇</div>
+                        </div>
+                    </div>
+
+                    <h4>📁 批量导入词汇</h4>
+                    <div class="upload-section">
+                        <div class="file-upload-area" onclick="document.getElementById('file-input').click()">
+                            <input type="file" id="file-input" accept=".txt,.csv,.xlsx,.xls,.docx" onchange="handleFileUpload(event)" style="display: none;">
+                            <div class="upload-text">
+                                <span class="upload-icon">📁</span>
+                                <p>点击选择文件或拖拽文件到此处</p>
+                                <small>支持 .txt、.csv、.xlsx、.xls、.docx 格式</small>
+                            </div>
+                        </div>
+                        
+                        <!-- 文件预览和难度选择区域 -->
+                        <div id="file-preview-section" class="file-preview-section" style="display: none;">
+                            <h5>📋 文件预览</h5>
+                            <div class="preview-controls">
+                                <div class="level-selector">
+                                    <label for="import-level">选择导入难度：</label>
+                                    <select id="import-level" class="form-select">
+                                        <option value="P1">P1 - 基础词汇</option>
+                                        <option value="P2">P2 - 进阶词汇</option>
+                                        <option value="P3">P3 - 高级词汇</option>
+                                        <option value="P4">P4 - 专业词汇</option>
+                                        <option value="keep">保持文件中的原始难度</option>
+                                    </select>
+                                </div>
+                                <div class="preview-stats">
+                                    <span id="preview-count">0</span> 个词汇待导入
+                                </div>
+                            </div>
+                            
+                            <div class="preview-table-container">
+                                <table class="preview-table">
+                                    <thead>
+                                        <tr>
+                                            <th>选择</th>
+                                            <th>英文</th>
+                                            <th>中文</th>
+                                            <th>难度</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="preview-table-body">
+                                        <!-- 动态生成预览内容 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="preview-actions">
+                                <button class="secondary-btn" onclick="selectAllWords()">全选</button>
+                                <button class="secondary-btn" onclick="deselectAllWords()">取消全选</button>
+                                <button class="primary-btn" onclick="importSelectedWords()">导入选中词汇</button>
+                                <button class="danger-btn" onclick="cancelImport()">取消导入</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4>➕ 手动添加词汇</h4>
+                    <form class="manual-add-form" onsubmit="addWordManually(event)">
+                        <input type="text" id="manual-english" placeholder="英文单词" class="form-input" required>
+                        <input type="text" id="manual-chinese" placeholder="中文释义" class="form-input" required>
+                        <select id="manual-level" class="form-select" required>
+                            <option value="">选择难度</option>
+                            <option value="P1">P1 - 基础词汇</option>
+                            <option value="P2">P2 - 进阶词汇</option>
+                            <option value="P3">P3 - 高级词汇</option>
+                            <option value="P4">P4 - 专业词汇</option>
+                        </select>
+                        <button type="submit" class="primary-btn">添加</button>
+                    </form>
+
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="danger-btn" onclick="clearVocabulary()">清空词汇库</button>
+                    </div>
+                </div>
+
+                <!-- 用户管理 -->
+                <div class="admin-card">
+                    <h3>👥 用户管理</h3>
+                    
+                    <!-- 用户统计 -->
+                    <div class="user-stats">
+                        <div class="user-stat-item">
+                            <span class="stat-value" id="total-users">0</span>
+                            <span class="stat-desc">总用户数</span>
+                        </div>
+                        <div class="user-stat-item">
+                            <span class="stat-value" id="admin-users">0</span>
+                            <span class="stat-desc">管理员数</span>
+                        </div>
+                        <div class="user-stat-item">
+                            <span class="stat-value" id="regular-users">0</span>
+                            <span class="stat-desc">普通用户</span>
+                        </div>
+                    </div>
+
+                    <!-- 管理员账户重置 -->
+                    <h4>🔐 管理员账户设置</h4>
+                    <form class="admin-reset-form" onsubmit="resetAdminAccount(event)">
+                        <div class="form-row">
+                            <input type="text" id="new-admin-username" placeholder="新管理员用户名" class="form-input" required>
+                            <input type="password" id="new-admin-password" placeholder="新管理员密码（至少6位）" class="form-input" required>
+                        </div>
+                        <div class="form-row">
+                            <input type="password" id="confirm-admin-password" placeholder="确认新密码" class="form-input" required>
+                            <button type="submit" class="warning-btn">重置管理员账户</button>
+                        </div>
+                    </form>
+
+                    <div class="user-management-actions">
+                        <button class="secondary-btn" onclick="exportUserData()">导出用户数据</button>
+                        <button class="danger-btn" onclick="resetAllScores()">重置所有成绩</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 竞赛页面 -->
+        <section id="contest" class="section">
+            <!-- 竞赛设置 -->
+            <div id="contest-setup" class="contest-setup">
+                <div class="contest-header">
+                    <h2>开始词汇竞赛</h2>
+                    <p>测试您的英语词汇水平，挑战自我！</p>
+                </div>
+
+                <div class="contest-config">
+                    <div class="form-group">
+                        <label for="contest-level">选择难度等级：</label>
+                        <select id="contest-level" class="form-select">
+                            <option value="P1">P1 - 基础词汇</option>
+                            <option value="P2">P2 - 进阶词汇</option>
+                            <option value="P3">P3 - 高级词汇</option>
+                            <option value="P4">P4 - 专业词汇</option>
+                        </select>
+                    </div>
+
+                    <div class="contest-info">
+                        <div class="info-item">
+                            <span class="info-icon">⏱️</span>
+                            <span>竞赛时长：10分钟</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">📝</span>
+                            <span>题目数量：100题</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">🎯</span>
+                            <span>题型：英译中、中译英、填空</span>
+                        </div>
+                    </div>
+
+                    <button class="start-contest-btn" onclick="startContest()">开始竞赛</button>
+                </div>
+            </div>
+
+            <!-- 活跃竞赛 -->
+            <div id="contest-active" class="contest-active" style="display: none;">
+                <div class="contest-header-active">
+                    <div class="timer-section">
+                        <span class="timer-label">剩余时间：</span>
+                        <span class="timer-value" id="timer-display">10:00</span>
+                    </div>
+                    <div class="progress-section">
+                        <span class="progress-label">进度：</span>
+                        <span class="progress-value" id="question-progress">1/100</span>
+                    </div>
+                </div>
+
+                <div class="question-container">
+                    <div class="question-header">
+                        <div class="question-type" id="question-type">英译中</div>
+                    </div>
+
+                    <div class="question-content">
+                        <div class="question-text" id="question-text">Loading...</div>
+                    </div>
+
+                    <div class="answer-section">
+                        <!-- 选择题选项 -->
+                        <div id="multiple-choice" class="options-grid">
+                            <button class="option-btn" onclick="selectOption(0)"></button>
+                            <button class="option-btn" onclick="selectOption(1)"></button>
+                            <button class="option-btn" onclick="selectOption(2)"></button>
+                            <button class="option-btn" onclick="selectOption(3)"></button>
+                        </div>
+
+                        <!-- 填空题输入 -->
+                        <div id="text-input" class="text-input" style="display: none;">
+                            <input type="text" id="answer-input" class="answer-input" placeholder="请输入答案">
+                            <div id="question-hint" class="question-hint" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <button class="submit-btn" id="submit-btn" onclick="submitAnswer()">提交答案</button>
+                </div>
+            </div>
+
+            <!-- 竞赛结果 -->
+            <div id="contest-result" class="contest-result" style="display: none;">
+                <div class="result-header">
+                    <h2>竞赛结果</h2>
+                </div>
+
+                <div class="result-summary">
+                    <div class="result-item">
+                        <span class="result-label">正确率：</span>
+                        <span class="result-value" id="final-accuracy">0%</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">答题情况：</span>
+                        <span class="result-value" id="final-correct">0/100</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">用时：</span>
+                        <span class="result-value" id="final-duration">0分0秒</span>
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <button class="primary-btn" onclick="restartContest()">再次挑战</button>
+                    <button class="secondary-btn" onclick="showSection('leaderboard')">查看排行榜</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 排行榜 -->
+        <section id="leaderboard" class="section">
+            <div class="leaderboard-header">
+                <h2>竞赛排行榜</h2>
+                <p>查看各难度等级的最佳成绩</p>
+            </div>
+
+            <!-- 难度选择 -->
+            <div class="level-tabs">
+                <button class="level-tab active" onclick="switchLeaderboardLevel('P1')">P1</button>
+                <button class="level-tab" onclick="switchLeaderboardLevel('P2')">P2</button>
+                <button class="level-tab" onclick="switchLeaderboardLevel('P3')">P3</button>
+                <button class="level-tab" onclick="switchLeaderboardLevel('P4')">P4</button>
+                <button class="level-tab" onclick="switchLeaderboardLevel('all')">全部</button>
+            </div>
+
+            <!-- 排行榜内容 -->
+            <div id="leaderboard-content" class="leaderboard-content">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>用户名</th>
+                            <th>得分</th>
+                            <th>正确率</th>
+                            <th>完成时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #6c757d; padding: 40px;">
+                                暂无竞赛记录
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

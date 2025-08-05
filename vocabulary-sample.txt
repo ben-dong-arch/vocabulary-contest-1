@@ -1,0 +1,10 @@
+apple	苹果	P1
+computer	计算机	P2
+beautiful	美丽的	P1
+technology	技术	P3
+environment	环境	P2
+education	教育	P2
+important	重要的	P1
+development	发展	P3
+international	国际的	P3
+communication	交流	P2
